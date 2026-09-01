@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>IoT-Sicherheitsassistent</title>
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: #1e1e1e;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif
+        }
+
+        #chat {
+            width: 800px;
+            max-width: 90%;
+            margin: 40px auto
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px
+        }
+
+        #messages {
+            height: 500px;
+            overflow-y: auto;
+            background: #2b2b2b;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #444
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            line-height: 1.5;
+            word-wrap: break-word
+        }
+
+        .user {
+            background: #3a3a3a;
+            margin-left: 50px
+        }
+
+        .ai {
+            background: #252525;
+            margin-right: 50px
+        }
+
+        .status {
+            background: #252525;
+            margin-right: 50px;
+            color: #d0d0d0
+        }
+
+        .progress {
+            background: #252525;
+            margin-right: 50px;
+            color: #d0d0d0
+        }
+
+        .completed {
+            background: #252525;
+            margin-right: 50px;
+            color: #d0d0d0
+        }
+
+        #input-area {
+            display: flex;
+            margin-top: 10px;
+            gap: 10px
+        }
+
+        #message {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            color: white;
+            background: #2b2b2b;
+            border: 1px solid #444;
+            border-radius: 6px;
+            outline: none
+        }
+
+        #message:focus {
+            border-color: #666
+        }
+
+        #message::placeholder {
+            color: #888
+        }
+
+        button {
+            padding: 15px 25px;
+            font-size: 16px;
+            color: white;
+            background: #444;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        button:hover {
+            background: #555
+        }
+
+        button:disabled {
+            background: #333;
+            color: #777;
+            cursor: not-allowed
+        }
+
+        #messages::-webkit-scrollbar {
+            width: 8px
+        }
+
+        #messages::-webkit-scrollbar-track {
+            background: #222
+        }
+
+        #messages::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px
+        }
+
+        @media(max-width:600px) {
+            #chat {
+                max-width: 95%;
+                margin: 20px auto
+            }
+
+            #messages {
+                height: 60vh
+            }
+
+            .user {
+                margin-left: 10px
+            }
+
+            .ai,
+            .status,
+            .progress,
+            .completed {
+                margin-right: 10px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat">
+        <h1>IoT-Sicherheitsassistent</h1>
+        <div id="messages">
+            <div class="message ai"><strong>SenpAI:</strong><br>Hallo! Wie kann ich dir helfen?</div>
+        </div>
+        <div id="input-area">
+            <input id="message" type="text" placeholder="Stelle eine Frage..." autocomplete="off"
+                onkeydown="handleKey(event)">
+            <button id="sendButton" onclick="sendMessage()">Senden</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("message");
+            const button = document.getElementById("sendButton");
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.disabled = true;
+            button.disabled = true;
+
+            addMessage("Du", message, "user");
+            input.value = "";
+
+            let finalMessage = null;
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server antwortete mit HTTP " + response.status);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const events = buffer.split("\n\n");
+                    buffer = events.pop();
+
+                    for (const event of events) {
+                        if (!event.startsWith("data:")) continue;
+
+                        const json = event.substring(5).trim();
+                        if (!json) continue;
+
+                        let data;
+                        try {
+                            data = JSON.parse(json);
+                        } catch {
+                            continue;
+                        }
+
+                        if (data.type === "thinking") {
+                            addMessage("KI", data.text, "status");
+                        }
+                        else if (data.type === "status") {
+                            addMessage("KI", data.text, "status");
+                        }
+                        else if (data.type === "progress") {
+                            addMessage("KI", data.text, "progress");
+                        }
+                        else if (data.type === "completed") {
+                            addMessage("KI", data.text, "completed");
+                        }
+                        else if (data.type === "answer_start") {
+                            finalMessage = addMessage("KI", "", "ai");
+                        }
+                        else if (data.type === "token") {
+                            if (!finalMessage) {
+                                finalMessage = addMessage("KI", "", "ai");
+                            }
+                            finalMessage.innerHTML += formatText(data.text);
+                            scrollToBottom();
+                        }
+                        else if (data.type === "answer_end") {
+                            scrollToBottom();
+                        }
+                    }
+                }
+            } catch (error) {
+                addMessage(
+                    "KI",
+                    "Bei der Verarbeitung ist ein Fehler aufgetreten: " + error.message,
+                    "status"
+                );
+                console.error(error);
+            }
+
+            input.disabled = false;
+            button.disabled = false;
+            input.focus();
+        }
+
+        function addMessage(sender, text, type) {
+            const messages = document.getElementById("messages");
+            const div = document.createElement("div");
+            div.className = "message " + type;
+            div.innerHTML = "<strong>" + escapeHtml(sender) + ":</strong><br>" + formatText(text);
+            messages.appendChild(div);
+            scrollToBottom();
+            return div;
+        }
+
+        function formatText(text) {
+            return escapeHtml(text).replace(/\n/g, "<br>");
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function scrollToBottom() {
+            const messages = document.getElementById("messages");
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function handleKey(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+
+</html>
