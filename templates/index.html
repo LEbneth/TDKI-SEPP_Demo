@@ -29,7 +29,7 @@
         }
 
         #messages {
-            height: 75vh;
+            height: 70vh;
             max-height: 700px;
             overflow-y: auto;
             background: #2b2b2b;
@@ -80,6 +80,25 @@
             gap: 10px
         }
 
+        #reset-area {
+        margin-top: 30px;
+        text-align: left
+        }
+
+        #resetButton {
+            padding: 15px 20px;
+            font-size: 16px;
+            color: white;
+            background: #555;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        #resetButton:hover {
+            background: #444
+        }
+
         #message {
             flex: 1;
             padding: 15px;
@@ -103,14 +122,14 @@
             padding: 15px 25px;
             font-size: 16px;
             color: white;
-            background: #444;
+            background: rgb(58, 27, 198);;
             border: none;
             border-radius: 6px;
             cursor: pointer
         }
 
         button:hover {
-            background: #555
+            background: rgb(78, 27, 198)
         }
 
         button:disabled {
@@ -191,19 +210,46 @@
     <div id="chat">
         <h1>IoT-Sicherheitsassistent</h1>
         <div id="messages">
-            <div class="message ai"><strong>KI:</strong><br>Hallo! Wie kann ich dir helfen?</div>
+            <div id="introduction" class="message ai"><strong>SenpAI:</strong><br>Ich bereite meine Einführung vor...</div>
             <div id="loading">
                 <div class="spinner"></div>
             </div>
         </div>
         <div id="input-area">
-            <input id="message" type="text" placeholder="Stelle eine Frage..." autocomplete="off"
+            <input id="message" type="text" placeholder="Frage deinen SenpAI...!" autocomplete="off"
                 onkeydown="handleKey(event)">
             <button id="sendButton" onclick="sendMessage()">Senden</button>
+        </div>
+        <div id="reset-area">
+            <button id="resetButton" onclick="resetPage()">Neustart</button>
         </div>
     </div>
 
     <script>
+        window.addEventListener("load",loadIntroduction);
+
+        function resetPage() {
+            window.location.reload();
+        }
+
+        async function loadIntroduction(){
+            showLoading();
+            try{
+                const response=await fetch("/introduction");
+                if(!response.ok)throw new Error("HTTP "+response.status);
+
+                const data=await response.json();
+                const introduction=document.getElementById("introduction");
+
+                introduction.innerHTML="<strong>SenpAI:</strong><br>"+formatText(data.text);
+            }catch(error){
+                console.error(error);
+                document.getElementById("introduction").innerHTML=
+                    "SenpAI", "Bei der Verarbeitung ist ein Fehler aufgetreten: " + error.message,"status"
+                }
+            hideLoading();
+        }
+
         async function sendMessage() {
             const input = document.getElementById("message");
             const button = document.getElementById("sendButton");
@@ -256,23 +302,23 @@
                         }
 
                         if (data.type === "thinking") {
-                            addMessage("KI", data.text, "status");
+                            addMessage("SenpAI", data.text, "status");
                         }
                         else if (data.type === "status") {
-                            addMessage("KI", data.text, "status");
+                            addMessage("SenpAI", data.text, "status");
                         }
                         else if (data.type === "progress") {
-                            addMessage("KI", data.text, "progress");
+                            addMessage("SenpAI", data.text, "progress");
                         }
                         else if (data.type === "completed") {
-                            addMessage("KI", data.text, "completed");
+                            addMessage("SenpAI", data.text, "completed");
                         }
                         else if (data.type === "answer_start") {
-                            finalMessage = addMessage("KI", "", "ai");
+                            finalMessage = addMessage("SenpAI", "", "ai");
                         }
                         else if (data.type === "token") {
                             if (!finalMessage) {
-                                finalMessage = addMessage("KI", "", "ai");
+                                finalMessage = addMessage("SenpAI", "", "ai");
                             }
                             finalMessage.innerHTML += formatText(data.text);
                             scrollToBottom();
@@ -284,7 +330,7 @@
                 }
             } catch (error) {
                 addMessage(
-                    "KI",
+                    "SenpAI",
                     "Bei der Verarbeitung ist ein Fehler aufgetreten: " + error.message,
                     "status"
                 );

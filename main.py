@@ -4,7 +4,7 @@ import asyncio
 import requests
 from pathlib import Path
 from fastapi import FastAPI,Request
-from fastapi.responses import HTMLResponse,StreamingResponse
+from fastapi.responses import HTMLResponse,StreamingResponse,JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
@@ -14,10 +14,10 @@ BASE_DIR=Path(__file__).parent
 PROMPTS_DIR=BASE_DIR/"prompts"
 
 TOOLS={
-    "scan_device":BASE_DIR/"scripts"/"scan_device.py",
-    "check_credentials":BASE_DIR/"scripts"/"check_credentials.py",
-    "analyze_network":BASE_DIR/"scripts"/"analyze_network.py",
-    "generate_report":BASE_DIR/"scripts"/"generate_report.py",
+    "lightbulb_off":BASE_DIR/"scripts"/"lightbulb_off.py",
+    "lightbulb_on":BASE_DIR/"scripts"/"lightbulb_on.py",
+    "lock_close":BASE_DIR/"scripts"/"lock_close.py",
+    "lock_open":BASE_DIR/"scripts"/"lock_open.py",
 }
 
 app=FastAPI()
@@ -28,7 +28,28 @@ def load_context():
 
 def load_prompt(name,**kwargs):
     prompt=(PROMPTS_DIR/f"{name}.txt").read_text(encoding="utf-8")
-    return prompt.format(**kwargs)
+    for key,value in kwargs.items():
+        prompt=prompt.replace("{"+key+"}",str(value))
+    return prompt
+
+def generate_introduction():
+    prompt=load_prompt(
+        "0_introduction",
+        context=load_context()
+    )
+    response=requests.post(
+        OLLAMA_URL,
+        json={
+            "model":MODEL,
+            "messages":[
+                {"role":"system","content":prompt}
+            ],
+            "stream":False
+        },
+        timeout=120
+    )
+    response.raise_for_status()
+    return response.json()["message"]["content"].strip()
 
 def execute_tool(tool_name):
     if tool_name not in TOOLS:
@@ -50,7 +71,6 @@ def select_tool(user_message):
         "1_tool_selection",
         context=load_context()
     )
-
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -90,7 +110,6 @@ def generate_progress_message(user_message,action):
         user_message=user_message,
         action=action
     )
-
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -110,7 +129,6 @@ def analyze_result_stream(user_message,action,tool_output):
         action=action,
         tool_output=tool_output
     )
-
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -141,6 +159,18 @@ async def index(request:Request):
         request=request,
         name="index.html"
     )
+
+@app.get("/introduction")
+async def introduction():
+    try:
+        text=await asyncio.to_thread(generate_introduction)
+        return JSONResponse({"text":text})
+    except Exception as e:
+        print("[FEHLER] Einführung konnte nicht generiert werden:",e)
+        return JSONResponse(
+            {"text":"Hallo! Ich bin SenpAI, dein lokaler IoT-Sicherheitsassistent. Wie kann ich dir helfen?"},
+            status_code=200
+        )
 
 class ChatRequest(BaseModel):
     message:str
