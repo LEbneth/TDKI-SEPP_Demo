@@ -54,8 +54,9 @@ Enter a test prompt to verify that the model is working, then exit with:
 Create and activate a virtual environment:
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv venv
+venv\Scripts\activate # For Windows
+source venv/bin/activate  # For Linux/Mac
 ```
 
 Install the required dependencies:
@@ -65,6 +66,14 @@ pip install -r requirements.txt
 ```
 
 ### 5. Run the Application
+
+Make sure Ollama is running by starting it manually or running the following command in a separate terminal widow:
+
+```bash
+ollama serve
+```
+
+Run the application:
 
 ```bash
 python main.py

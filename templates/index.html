@@ -29,7 +29,8 @@
         }
 
         #messages {
-            height: 500px;
+            height: 75vh;
+            max-height: 700px;
             overflow-y: auto;
             background: #2b2b2b;
             padding: 20px;
@@ -118,6 +119,37 @@
             cursor: not-allowed
         }
 
+        #loading {
+            display: none;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 5px 0 15px 0;
+            padding: 8px
+        }
+
+        #loading.active {
+            display: flex
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #555;
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin .8s linear infinite
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg)
+            }
+
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
         #messages::-webkit-scrollbar {
             width: 8px
         }
@@ -159,7 +191,10 @@
     <div id="chat">
         <h1>IoT-Sicherheitsassistent</h1>
         <div id="messages">
-            <div class="message ai"><strong>SenpAI:</strong><br>Hallo! Wie kann ich dir helfen?</div>
+            <div class="message ai"><strong>KI:</strong><br>Hallo! Wie kann ich dir helfen?</div>
+            <div id="loading">
+                <div class="spinner"></div>
+            </div>
         </div>
         <div id="input-area">
             <input id="message" type="text" placeholder="Stelle eine Frage..." autocomplete="off"
@@ -180,6 +215,7 @@
 
             addMessage("Du", message, "user");
             input.value = "";
+            showLoading();
 
             let finalMessage = null;
 
@@ -255,6 +291,7 @@
                 console.error(error);
             }
 
+            hideLoading();
             input.disabled = false;
             button.disabled = false;
             input.focus();
@@ -262,12 +299,27 @@
 
         function addMessage(sender, text, type) {
             const messages = document.getElementById("messages");
+            const loading = document.getElementById("loading");
             const div = document.createElement("div");
+
             div.className = "message " + type;
             div.innerHTML = "<strong>" + escapeHtml(sender) + ":</strong><br>" + formatText(text);
-            messages.appendChild(div);
+
+            messages.insertBefore(div, loading);
             scrollToBottom();
+
             return div;
+        }
+
+        function showLoading() {
+            const loading = document.getElementById("loading");
+            loading.classList.add("active");
+            scrollToBottom();
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById("loading");
+            loading.classList.remove("active");
         }
 
         function formatText(text) {
