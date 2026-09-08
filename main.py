@@ -18,25 +18,23 @@ TOOLS={
     "lightbulb_on":BASE_DIR/"scripts"/"lightbulb_on.py",
     "lock_close":BASE_DIR/"scripts"/"lock_close.py",
     "lock_open":BASE_DIR/"scripts"/"lock_open.py",
+    "network_scan":BASE_DIR/"scripts"/"network_scan.py",
 }
 
 app=FastAPI()
 templates=Jinja2Templates(directory=BASE_DIR/"templates")
 
 def load_context():
-    return (BASE_DIR/"context.txt").read_text(encoding="utf-8")
+    return (BASE_DIR/"prompts"/"context.txt").read_text(encoding="utf-8")
 
 def load_prompt(name,**kwargs):
-    prompt=(PROMPTS_DIR/f"{name}.txt").read_text(encoding="utf-8")
+    prompt=load_context()+(PROMPTS_DIR/f"{name}.txt").read_text(encoding="utf-8")
     for key,value in kwargs.items():
         prompt=prompt.replace("{"+key+"}",str(value))
     return prompt
 
 def generate_introduction():
-    prompt=load_prompt(
-        "0_introduction",
-        context=load_context()
-    )
+    prompt=load_prompt("0_introduction")
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -67,10 +65,7 @@ def execute_tool(tool_name):
         return f"Die Operation konnte nicht ausgeführt werden: {e}"
 
 def select_tool(user_message):
-    prompt=load_prompt(
-        "1_tool_selection",
-        context=load_context()
-    )
+    prompt=load_prompt("1_tool_selection")
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -105,11 +100,7 @@ def select_tool(user_message):
     }
 
 def generate_progress_message(user_message,action):
-    prompt=load_prompt(
-        "2_progress",
-        user_message=user_message,
-        action=action
-    )
+    prompt=load_prompt("2_progress",user_message=user_message,action=action)
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -123,12 +114,7 @@ def generate_progress_message(user_message,action):
     return response.json()["message"]["content"].strip()
 
 def analyze_result_stream(user_message,action,tool_output):
-    prompt=load_prompt(
-        "3_analysis",
-        user_message=user_message,
-        action=action,
-        tool_output=tool_output
-    )
+    prompt=load_prompt("3_analysis",user_message=user_message,action=action,tool_output=tool_output)
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -218,7 +204,7 @@ async def chat(request:ChatRequest):
                 action
             )
         except Exception:
-            progress_message="Ich führe die angeforderte Sicherheitsanalyse jetzt durch."
+            progress_message="Bei der Erstellung der Fortschrittsmeldung ist ein Fehler aufgetreten."
 
         yield "data: "+json.dumps({
             "type":"progress",
@@ -233,7 +219,7 @@ async def chat(request:ChatRequest):
 
         yield "data: "+json.dumps({
             "type":"completed",
-            "text":"Die Untersuchung ist abgeschlossen. Ich analysiere jetzt die Ergebnisse."
+            "text":"Die Operation wurde erfolgreich ausgeführt. Ich analysiere jetzt die Ergebnisse."
         },ensure_ascii=False)+"\n\n"
         await asyncio.sleep(0.1)
 

@@ -210,7 +210,7 @@
     <div id="chat">
         <h1>IoT-Sicherheitsassistent</h1>
         <div id="messages">
-            <div id="introduction" class="message ai"><strong>SenpAI:</strong><br>Ich bereite meine Einführung vor...</div>
+            <div id="introduction" class="message ai"><strong>SenpAI:</strong><br>Dein SenpAI stellt sich vor...</div>
             <div id="loading">
                 <div class="spinner"></div>
             </div>
@@ -241,7 +241,7 @@
                 const data=await response.json();
                 const introduction=document.getElementById("introduction");
 
-                introduction.innerHTML="<strong>SenpAI:</strong><br>"+formatText(data.text);
+                addMessage("SenpAI", formatText(data.text), "ai");
             }catch(error){
                 console.error(error);
                 document.getElementById("introduction").innerHTML=

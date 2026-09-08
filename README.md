@@ -5,18 +5,19 @@
 ```text
 AI Demo/
 ├── main.py
-├── config.py
-├── context.txt
 ├── requirements.txt
 ├── prompts/
+│   ├── context.txt
+│   ├── 0_introduction.txt
 │   ├── 1_tool_selection.txt
 │   ├── 2_progress.txt
 │   └── 3_analysis.txt
 ├── scripts/
-│   ├── scan_device.py
-│   ├── check_credentials.py
-│   ├── analyze_network.py
-│   └── generate_report.py
+│   ├── lightbulb_off.py
+│   ├── lightbulb_on.py
+│   ├── lock_close.py
+│   ├── lock_open.py
+│   └── network_scan.py
 └── templates/
     └── index.html
 ```
@@ -67,7 +68,7 @@ pip install -r requirements.txt
 
 ### 5. Run the Application
 
-Make sure Ollama is running by starting it manually or running the following command in a separate terminal widow:
+Make sure Ollama is running by starting the API using the following command in a separate terminal widow:
 
 ```bash
 ollama serve
