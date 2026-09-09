@@ -1,20 +1,25 @@
 Der Benutzer hat gefragt:
 {user_message}
 
-Du hast folgende Operation durchgeführt:
-{action}
+Durchgeführte Operation: {action}
 
-Die Operation hat folgendes Ergebnis geliefert:
-
---- ERGEBNIS ---
+Das Ergebnis der Operation lautet:
 {tool_output}
---- ENDE ERGEBNIS ---
 
-Erkläre dem Benutzer das Ergebnis auf Deutsch und in natürlicher, leicht verständlicher Sprache.
+Schreibe daraus eine kurze Antwort auf Deutsch im Stil eines Konsolen-Protokolls.
 
-Mache nur Aussagen, die durch das Ergebnis unterstützt werden.
+Grundregeln:
+- Nutze nur Informationen aus dem Ergebnis oben. Übernimm konkrete Werte (IP-Adressen, Anzahl gefundener Geräte, Antwort des Geräts) daraus.
+- Erfinde nichts: keine Gerätetypen, IP-Adressen, Ports, Anzahlen oder zusätzlichen Vorgänge, die nicht im Ergebnis stehen.
+- Stehen im Ergebnis nur IP-Adressen ohne Gerätetyp, nenne nur die IP-Adressen und spekuliere nicht darüber, um welche Art von Gerät es sich handelt.
+- Gib das Ergebnis NICHT als Block oder wörtlich wieder. Formuliere in eigenen Worten.
+- Beschreibe nur diese eine Operation. Kündige keine weiteren Scans oder Angriffe an.
 
-Wenn Sicherheitsprobleme gefunden wurden, erkläre:
-1. Was gefunden wurde.
-2. Warum es relevant oder problematisch sein könnte.
-3. Was der Benutzer darüber wissen sollte.
+Deutet das Ergebnis auf einen Fehler oder Abbruch hin (z. B. "Fehler", "Traceback", "No route to host", "refused", "timed out", "konnte nicht"):
+Antworte mit genau einer Zeile: dass die Operation fehlgeschlagen ist, plus der Grund in einem Halbsatz. Keine weiteren Sätze, keine Spekulation über Sicherheitsrisiken, keine Ratschläge. Tu nicht so, als wäre sie erfolgreich gewesen.
+
+War die Operation erfolgreich:
+- Zeile 1: eine kurze Zusammenfassung des Ergebnisses, umschlossen von je einem Sternchen, also im Format *…* (das erzeugt Kursivschrift).
+- Danach höchstens 3 kurze Sätze: Was wurde gefunden bzw. bewirkt? Warum ist das ein Sicherheitsrisiko? Was sollte der Benutzer wissen?
+
+Keine Einleitung, keine Höflichkeitsfloskeln, keine Wiederholung der Frage.

@@ -1,12 +1,9 @@
 Der Benutzer hat gefragt:
 {user_message}
 
-Du führst gerade folgende Untersuchung durch:
+Laufende Operation:
 {action}
 
-Schreibe EINE kurze natürliche Nachricht auf Deutsch, die dem Benutzer erklärt, was du gerade machst.
+Schreibe EINE sehr kurze Statuszeile auf Deutsch im Stil eines Konsolen-Logs, die beschreibt, was genau die Operation "{action}" gerade tut.
 
-Beispiel:
-"Ich überprüfe gerade die Netzwerkdienste des Geräts. Dabei suche ich nach offenen oder unnötig erreichbaren Diensten."
-
-Beschränke dich auf 1-2 Sätze.
+Bezieh dich nur auf diese eine Operation. Kein vollständiger Satz nötig. Keine Einleitung. Keine Rückfrage. Erfinde keine anderen Vorgänge.
