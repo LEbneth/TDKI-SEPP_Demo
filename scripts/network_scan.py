@@ -1,6 +1,6 @@
 import subprocess
 
-command = ["nmap", "-sn", "192.168.178.0/24"]
+command = ["nmap", "-sn", "192.168.0.0/24"]
 
 result = subprocess.run(
     command,

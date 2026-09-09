@@ -9,7 +9,8 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 OLLAMA_URL="http://localhost:11434/api/chat"
-MODEL="qwen3:4b"
+#MODEL="qwen3:4b"
+MODEL="qwen2.5:3b"
 BASE_DIR=Path(__file__).parent
 PROMPTS_DIR=BASE_DIR/"prompts"
 
