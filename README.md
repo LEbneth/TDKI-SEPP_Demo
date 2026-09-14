@@ -33,7 +33,7 @@ https://ollama.com
 ### 2. Pull the Required Model
 
 ```bash
-ollama pull qwen3:4b
+ollama pull qwen2.5:3b
 ```
 
 ### 3. Test the Installation
@@ -41,7 +41,7 @@ ollama pull qwen3:4b
 Run the model from the terminal to ensure it is working correctly:
 
 ```bash
-ollama run qwen3:4b
+ollama run qwen2.5:3b
 ```
 
 Enter a test prompt to verify that the model is working, then exit with:
