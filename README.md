@@ -81,3 +81,17 @@ python main.py
 ```
 
 Go to the given URL in your browser to access the application. (Should be: http://127.0.0.1:8000)
+
+### 6. Start MQTT Server
+
+open another terminal and connect via ssh to raspi
+
+```bash
+ssh seclab@192.168.0.104
+```
+and now start the script (/home/seclab/07_mqtt_exercise/mqtt_setupstart_TDKI.sh) 
+
+```bash
+/home/seclab/07_mqtt_exercise/mqtt_setup/start_TDKI.sh
+```
+
