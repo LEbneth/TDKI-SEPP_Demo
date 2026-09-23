@@ -4,6 +4,13 @@ Der Benutzer hat gefragt:
 Laufende Operation:
 {action}
 
-Schreibe EINE sehr kurze Statuszeile auf Deutsch im Stil eines Konsolen-Logs, die beschreibt, was genau die Operation "{action}" gerade tut.
+Schreibe EINE kurze, technisch klingende Statuszeile auf Deutsch im Stil einer Hacking-/Security-Konsole, die beschreibt, was genau die Operation "{action}" gerade tut.
 
 Bezieh dich nur auf diese eine Operation. Kein vollständiger Satz nötig. Keine Einleitung. Keine Rückfrage. Erfinde keine anderen Vorgänge.
+
+Nutze passende Begriffe wie Reconnaissance, Zielnetz, Angriffsfläche, Schwachstellenprüfung, Exploit-Vektor, Payload, Replay-Angriff, MQTT, Telnet oder Geräte-Fingerprinting, sofern sie zur Operation passen. Die Formulierung darf für die Demo leicht stilisiert sein und bekannte Schwachstellen-Profile oder eine kurze Internet-Recherche erwähnen. Sie soll technisch und interessant klingen, aber nicht dramatisch oder filmreif.
+
+Beispiele:
+- network_scan: "Reconnaissance läuft: Zielnetz und bekannte Schwachstellen-Profile werden abgeglichen."
+- lightbulb_on/lightbulb_off: "Exploit-Vektor wird vorbereitet: Steuerkanal der IoT-Glühbirne wird geprüft."
+- lock_open/lock_close: "Angriffsfläche wird bewertet: MQTT-Authentifizierung des IoT-Türschlosses wird analysiert."

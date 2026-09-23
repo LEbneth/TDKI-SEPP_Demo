@@ -7,15 +7,15 @@
     <title>SenpAI // IoT-Angriffskonsole</title>
     <style>
         :root {
-            --bg: #0b0e11;
-            --panel: #12161b;
-            --panel-2: #0f1318;
-            --border: #232b33;
-            --text: #c9d1d9;
-            --dim: #7d8a97;
-            --accent: #4ade80;
-            --accent-dim: #2f7d4f;
-            --warn: #fbbf24;
+            --bg: #080b0e;
+            --panel: #172027;
+            --panel-2: #10171d;
+            --border: #3a4a56;
+            --text: #f1f5f9;
+            --dim: #b8c4ce;
+            --accent: #6ee7a0;
+            --accent-dim: #3f9d67;
+            --warn: #ffd166;
         }
 
         * {
@@ -27,8 +27,8 @@
             background: var(--bg);
             color: var(--text);
             font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-            font-size: 14px;
-            line-height: 1.55
+            font-size: 18px;
+            line-height: 1.7
         }
 
         /* dezente Scanlines fuer den Terminal-Look */
@@ -42,22 +42,23 @@
         }
 
         #chat {
-            width: 820px;
-            max-width: 92%;
-            margin: 32px auto
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
+            padding: 0
         }
 
         header {
             border: 1px solid var(--border);
             border-bottom: none;
             background: var(--panel);
-            padding: 14px 18px;
+            padding: 22px 26px;
             border-radius: 10px 10px 0 0
         }
 
         h1 {
             margin: 0;
-            font-size: 16px;
+            font-size: 24px;
             font-weight: 600;
             letter-spacing: .5px;
             color: var(--accent)
@@ -70,7 +71,7 @@
         .subtitle {
             margin-top: 5px;
             color: var(--dim);
-            font-size: 11px;
+            font-size: 15px;
             letter-spacing: 1.5px;
             text-transform: uppercase
         }
@@ -82,17 +83,17 @@
         }
 
         #messages {
-            height: 66vh;
-            max-height: 680px;
+            height: 70vh;
+            max-height: 820px;
             overflow-y: auto;
             background: var(--panel-2);
-            padding: 18px;
+            padding: 28px;
             border: 1px solid var(--border)
         }
 
         .message {
-            margin-bottom: 12px;
-            padding: 10px 12px;
+            margin-bottom: 16px;
+            padding: 14px 16px;
             border-radius: 6px;
             word-wrap: break-word
         }
@@ -108,7 +109,7 @@
 
         .ai {
             background: var(--panel);
-            border-left: 2px solid var(--border)
+            border-left: 3px solid var(--border)
         }
 
         .ai strong {
@@ -124,21 +125,21 @@
             background: #1c2330;
             padding: 1px 5px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 16px;
             color: var(--warn)
         }
 
         .log {
             background: transparent;
-            padding: 2px 12px;
-            margin-bottom: 6px;
+            padding: 4px 14px;
+            margin-bottom: 8px;
             color: var(--dim);
-            font-size: 12.5px;
+            font-size: 16px;
             border-radius: 0
         }
 
         .log .ts {
-            color: #4b5560;
+            color: #91a1ad;
             margin-right: 6px
         }
 
@@ -153,7 +154,7 @@
         #input-area {
             display: flex;
             gap: 8px;
-            padding: 12px;
+            padding: 18px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-top: none;
@@ -162,8 +163,8 @@
 
         #message {
             flex: 1;
-            padding: 12px;
-            font-size: 14px;
+            padding: 16px;
+            font-size: 18px;
             font-family: inherit;
             color: var(--text);
             background: var(--panel-2);
@@ -177,12 +178,12 @@
         }
 
         #message::placeholder {
-            color: #5c6772
+            color: #9aaab6
         }
 
         #sendButton {
-            padding: 12px 20px;
-            font-size: 13px;
+            padding: 16px 24px;
+            font-size: 17px;
             font-family: inherit;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -205,13 +206,13 @@
         #suggestions {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px
+            gap: 10px;
+            margin-top: 16px
         }
 
         .chip {
-            padding: 7px 12px;
-            font-size: 12px;
+            padding: 11px 16px;
+            font-size: 16px;
             font-family: inherit;
             color: var(--dim);
             background: var(--panel);
@@ -231,12 +232,12 @@
         }
 
         #reset-area {
-            margin-top: 18px
+            margin-top: 22px
         }
 
         #resetButton {
-            padding: 9px 14px;
-            font-size: 12px;
+            padding: 12px 18px;
+            font-size: 16px;
             font-family: inherit;
             color: var(--dim);
             background: transparent;
@@ -254,10 +255,10 @@
             display: none;
             align-items: center;
             gap: 10px;
-            margin: 4px 0 12px;
-            padding: 2px 12px;
+            margin: 6px 0 16px;
+            padding: 4px 14px;
             color: var(--dim);
-            font-size: 12px
+            font-size: 16px
         }
 
         #loading.active {
@@ -265,8 +266,8 @@
         }
 
         .spinner {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border: 2px solid #2a333d;
             border-top-color: var(--accent);
             border-radius: 50%;
@@ -294,12 +295,13 @@
 
         @media(max-width:600px) {
             #chat {
-                max-width: 96%;
-                margin: 16px auto
+                max-width: none;
+                margin: 0;
+                padding: 0
             }
 
             #messages {
-                height: 60vh
+                height: 58vh
             }
         }
     </style>
@@ -427,7 +429,7 @@
                         }
 
                         if (data.type === "thinking") {
-                            addLog("Analysiere Anfrage ...", "[*]");
+                            addLog("Reconnaissance-Modul gestartet: Anfrage wird auf passende Angriffsvektoren geprüft ...", "[*]");
                         }
                         else if (data.type === "status") {
                             addLog(data.text, "[*]");
@@ -436,7 +438,7 @@
                             addLog(data.text, "[*]");
                         }
                         else if (data.type === "completed") {
-                            addLog("Operation beendet. Werte Ergebnisse aus ...", "[+]");
+                            addLog("Operation abgeschlossen. Treffer und Telemetrie werden ausgewertet ...", "[+]");
                         }
                         else if (data.type === "answer_start") {
                             finalText = "";

@@ -12,6 +12,7 @@ Grundregeln:
 - Nutze nur Informationen aus dem Ergebnis oben. Übernimm konkrete Werte (IP-Adressen, Anzahl gefundener Geräte, Antwort des Geräts) daraus.
 - Erfinde nichts: keine Gerätetypen, IP-Adressen, Ports, Anzahlen oder zusätzlichen Vorgänge, die nicht im Ergebnis stehen.
 - Stehen im Ergebnis nur IP-Adressen ohne Gerätetyp, nenne nur die IP-Adressen und spekuliere nicht darüber, um welche Art von Gerät es sich handelt.
+- Beim `network_scan`: Liste jedes gefundene Gerät einzeln auf. Übernimm für jedes Gerät exakt IP-Adresse, Name und Hersteller aus den Scanzeilen. Verwende pro Gerät eine eigene Zeile im Format `- IP: ... | Name: ... | Hersteller: ...`. Wenn ein Wert als "unbekannt" angegeben ist, behalte "unbekannt" bei und erfinde keinen Ersatz.
 - Gib das Ergebnis NICHT als Block oder wörtlich wieder. Formuliere in eigenen Worten.
 - Beschreibe nur diese eine Operation. Kündige keine weiteren Scans oder Angriffe an.
 
@@ -19,7 +20,7 @@ Deutet das Ergebnis auf einen Fehler oder Abbruch hin (z. B. "Fehler", "Tracebac
 Antworte mit genau einer Zeile: dass die Operation fehlgeschlagen ist, plus der Grund in einem Halbsatz. Keine weiteren Sätze, keine Spekulation über Sicherheitsrisiken, keine Ratschläge. Tu nicht so, als wäre sie erfolgreich gewesen.
 
 War die Operation erfolgreich:
-- Zeile 1: eine kurze Zusammenfassung des Ergebnisses, umschlossen von je einem Sternchen, also im Format *…* (das erzeugt Kursivschrift).
-- Danach höchstens 3 kurze Sätze: Was wurde gefunden bzw. bewirkt? Warum ist das ein Sicherheitsrisiko? Was sollte der Benutzer wissen?
+- Bei `network_scan`: Zeile 1 ist eine kurze Zusammenfassung, umschlossen von je einem Sternchen, also im Format *…*. Danach folgt jedes gefundene Gerät einzeln in einer eigenen Zeile. Füge danach höchstens einen kurzen Satz zur Anzahl und zur Sicherheitsrelevanz hinzu.
+- Bei allen anderen Operationen: Zeile 1 ist eine kurze Zusammenfassung, umschlossen von je einem Sternchen, also im Format *…*. Danach höchstens 3 kurze Sätze: Was wurde gefunden bzw. bewirkt? Warum ist das ein Sicherheitsrisiko? Was sollte der Benutzer wissen?
 
 Keine Einleitung, keine Höflichkeitsfloskeln, keine Wiederholung der Frage.
