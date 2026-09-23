@@ -210,6 +210,10 @@
             margin-top: 16px
         }
 
+        #attack-suggestions {
+            display: contents
+        }
+
         .chip {
             padding: 11px 16px;
             font-size: 16px;
@@ -316,7 +320,7 @@
         <div id="messages">
             <div class="message log">
                 <span class="ts">--:--:--</span><span class="glyph">[*]</span> SenpAI-Konsole bereit. Stelle eine
-                Frage oder nutze einen der Vorschlaege unten.
+                Frage oder waehle ein Ziel aus den Vorschlaegen unten.
             </div>
             <div id="loading">
                 <div class="spinner"></div><span>verarbeite ...</span>
@@ -329,9 +333,7 @@
         </div>
         <div id="suggestions">
             <button class="chip" onclick="requestIntroduction()">Wer bist du?</button>
-            <button class="chip" onclick="sendSuggestion('Welche Geraete befinden sich in diesem Netzwerk?')">Geraete im
-                Netzwerk finden</button>
-            <button class="chip" onclick="sendSuggestion('Starte einen Angriff auf ein Geraet.')">Angriff starten</button>
+            <button class="chip" onclick="sendSuggestion('Starte einen Netzwerk-Scan.')">Netzwerk scannen</button>
         </div>
         <div id="reset-area">
             <button id="resetButton" onclick="resetPage()">Neustart</button>
@@ -339,7 +341,9 @@
     </div>
 
     <script>
-        // Kein automatisches Vorstellen mehr beim Laden - SenpAI stellt sich nur auf Nachfrage vor.
+        let scanCompleted = false;
+
+        // Angriffsvorschläge werden erst nach einem erfolgreichen Netzwerk-Scan eingeblendet.
 
         function resetPage() {
             window.location.reload();
@@ -396,7 +400,10 @@
                 const response = await fetch("/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({
+                        message: message,
+                        scan_completed: scanCompleted
+                    })
                 });
 
                 if (!response.ok) {
@@ -439,7 +446,12 @@
                         }
                         else if (data.type === "completed") {
                             addLog("Operation abgeschlossen. Treffer und Telemetrie werden ausgewertet ...", "[+]");
+                            if (data.action === "network_scan" && data.success) {
+                                scanCompleted = true;
+                                revealAttackSuggestions();
+                            }
                         }
+
                         else if (data.type === "answer_start") {
                             finalText = "";
                             finalMessage = addMessage("SenpAI", "", "ai");
@@ -466,6 +478,21 @@
             hideLoading();
             setBusy(false);
             input.focus();
+        }
+
+        function revealAttackSuggestions() {
+            const suggestions = document.getElementById("suggestions");
+            if (document.getElementById("attack-suggestions")) return;
+
+            const group = document.createElement("span");
+            group.id = "attack-suggestions";
+            group.innerHTML =
+                '<button class="chip" onclick="sendSuggestion(\'Glühbirne ausschalten\')">Glühbirne ausschalten</button>' +
+                '<button class="chip" onclick="sendSuggestion(\'Glühbirne einschalten\')">Glühbirne einschalten</button>' +
+                '<button class="chip" onclick="sendSuggestion(\'Türschloss öffnen\')">Türschloss öffnen</button>' +
+                '<button class="chip" onclick="sendSuggestion(\'Türschloss schließen\')">Türschloss schließen</button>' +
+                '<button class="chip" onclick="sendSuggestion(\'Status des Türschlosses prüfen\')">Schlossstatus prüfen</button>';
+            suggestions.appendChild(group);
         }
 
         function addMessage(sender, text, type) {

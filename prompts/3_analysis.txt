@@ -21,6 +21,11 @@ Antworte mit genau einer Zeile: dass die Operation fehlgeschlagen ist, plus der 
 
 War die Operation erfolgreich:
 - Bei `network_scan`: Zeile 1 ist eine kurze Zusammenfassung, umschlossen von je einem Sternchen, also im Format *…*. Danach folgt jedes gefundene Gerät einzeln in einer eigenen Zeile. Füge danach höchstens einen kurzen Satz zur Anzahl und zur Sicherheitsrelevanz hinzu.
-- Bei allen anderen Operationen: Zeile 1 ist eine kurze Zusammenfassung, umschlossen von je einem Sternchen, also im Format *…*. Danach höchstens 3 kurze Sätze: Was wurde gefunden bzw. bewirkt? Warum ist das ein Sicherheitsrisiko? Was sollte der Benutzer wissen?
+- Bei `lock_status`: Zeile 1 ist eine kurze Zusammenfassung, umschlossen von je einem Sternchen, also im Format *…*. Nenne danach ausdrücklich den aus dem Ergebnis gelesenen Schlossstatus (z. B. offen oder geschlossen) sowie, falls vorhanden, den Batteriestatus. Behaupte keinen Angriff und keine Schwachstelle, da nur der Status abgefragt wurde.
+- Bei `lock_status` darf die Antwort niemals nur `*Operation erfolgreich*` oder eine andere allgemeine Erfolgsmeldung enthalten. Verwende zwingend den konkreten Wert aus `Schlossstatus:` in der Ausgabe, zum Beispiel `*Schlossstatus: Entriegelt (aufgeschlossen)*`. Wenn kein `Schlossstatus:` im Ergebnis steht, nenne stattdessen den tatsächlich vorhandenen Statuswert und weise darauf hin, dass keine verständliche Statusbezeichnung geliefert wurde.
+- Bei allen anderen Operationen: Zeile 1 ist eine kurze technische Zusammenfassung, umschlossen von je einem Sternchen, also im Format *…*. Danach folgt eine eigene Zeile mit der Überschrift `Einfach erklärt:`. Erkläre danach in 1–2 kurzen Sätzen ohne unnötige Fachbegriffe, welche Schwachstelle ausgenutzt wurde:
+  - `lightbulb_on` oder `lightbulb_off`: Die Glühbirne nimmt Steuerbefehle über eine ungeschützte Verbindung an. Dadurch kann ein Angreifer den Befehl nachvollziehen und erneut senden, ohne sich anmelden zu müssen.
+  - `lock_open` oder `lock_close`: Das Schloss benötigt zwar Zugangsdaten, diese werden aber unverschlüsselt übertragen. Wer den Netzwerkverkehr mitliest, kann die Zugangsdaten verwenden und das Schloss steuern.
+  Verwende die passende Erklärung für die ausgeführte Operation und formuliere sie so, dass sie auch Personen ohne IT-Sicherheitskenntnisse verstehen. Danach höchstens einen weiteren kurzen Satz zum Ergebnis. Behaupte nicht, dass eine Schwachstelle gefunden wurde, wenn die Operation fehlgeschlagen ist.
 
 Keine Einleitung, keine Höflichkeitsfloskeln, keine Wiederholung der Frage.

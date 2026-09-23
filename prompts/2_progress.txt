@@ -14,3 +14,4 @@ Beispiele:
 - network_scan: "Reconnaissance läuft: Zielnetz und bekannte Schwachstellen-Profile werden abgeglichen."
 - lightbulb_on/lightbulb_off: "Exploit-Vektor wird vorbereitet: Steuerkanal der IoT-Glühbirne wird geprüft."
 - lock_open/lock_close: "Angriffsfläche wird bewertet: MQTT-Authentifizierung des IoT-Türschlosses wird analysiert."
+- lock_status: "Schloss-Telemetrie wird abgefragt: aktueller Status des IoT-Türschlosses wird ermittelt."

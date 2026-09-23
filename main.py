@@ -19,6 +19,7 @@ TOOLS={
     "lightbulb_on":BASE_DIR/"scripts"/"lightbulb_on.py",
     "lock_close":BASE_DIR/"scripts"/"lock_close.py",
     "lock_open":BASE_DIR/"scripts"/"lock_open.py",
+    "lock_status":BASE_DIR/"scripts"/"lock_status.py",
     "network_scan":BASE_DIR/"scripts"/"network_scan.py",
 }
 
@@ -65,8 +66,51 @@ def execute_tool(tool_name):
     except Exception as e:
         return f"Die Operation konnte nicht ausgeführt werden: {e}"
 
-def select_tool(user_message):
-    prompt=load_prompt("1_tool_selection")
+def get_knowledge_answer(user_message):
+    message=user_message.lower()
+    asks_about_weakness=any(
+        phrase in message
+        for phrase in (
+            "schwachstelle",
+            "sicherheitslücke",
+            "warum ist",
+            "warum hat",
+            "wie funktioniert der angriff",
+        )
+    )
+    if not asks_about_weakness:
+        return None
+
+    if "glühbirne" in message or "gluhbirne" in message or "lampe" in message:
+        return (
+            "Die Glühbirne nimmt Steuerbefehle unverschlüsselt und ohne "
+            "Anmeldung über Telnet an. Ein Angreifer kann die Befehle "
+            "dadurch mitlesen und erneut senden."
+        )
+
+    if "schloss" in message or "tür" in message or "tur" in message:
+        return (
+            "Das Türschloss überträgt die benötigten Zugangsdaten "
+            "unverschlüsselt über MQTT. Wer den Netzwerkverkehr mitliest, "
+            "kann die Zugangsdaten verwenden und das Schloss steuern."
+        )
+
+    return None
+
+def select_tool(user_message,scan_completed):
+    knowledge_answer=get_knowledge_answer(user_message)
+    if knowledge_answer is not None:
+        return {
+            "action":"none",
+            "response_type":"answer",
+            "status_message":"",
+            "answer":knowledge_answer
+        }
+
+    prompt=load_prompt(
+        "1_tool_selection",
+        scan_completed="ja" if scan_completed else "nein"
+    )
     response=requests.post(
         OLLAMA_URL,
         json={
@@ -89,15 +133,29 @@ def select_tool(user_message):
         print(content)
         return {
             "action":"none",
-            "status_message":"Ich konnte leider nicht bestimmen, wie ich diese Anfrage bearbeiten soll."
+            "response_type":"status",
+            "status_message":"Ich konnte leider nicht bestimmen, wie ich diese Anfrage bearbeiten soll.",
+            "answer":""
         }
     action=decision.get("action","none")
+    response_type=decision.get("response_type","status")
     status_message=decision.get("status_message","")
+    answer=decision.get("answer","")
     if action not in TOOLS:
         action="none"
+    if not scan_completed and action not in ("none","network_scan"):
+        action="none"
+        response_type="status"
+        answer=""
+        status_message=(
+            "Zuerst muss eine Reconnaissance des Zielnetzes erfolgen. "
+            "Starte den Netzwerk-Scan, um die verfügbaren Ziele zu erfassen."
+        )
     return {
         "action":action,
-        "status_message":status_message
+        "response_type":response_type,
+        "status_message":status_message,
+        "answer":answer
     }
 
 def generate_progress_message(user_message,action):
@@ -161,6 +219,7 @@ async def introduction():
 
 class ChatRequest(BaseModel):
     message:str
+    scan_completed:bool=False
 
 @app.post("/chat")
 async def chat(request:ChatRequest):
@@ -174,7 +233,11 @@ async def chat(request:ChatRequest):
         await asyncio.sleep(0.05)
 
         try:
-            decision=await asyncio.to_thread(select_tool,user_message)
+            decision=await asyncio.to_thread(
+                select_tool,
+                user_message,
+                request.scan_completed
+            )
         except Exception as e:
             yield "data: "+json.dumps({
                 "type":"status",
@@ -186,6 +249,18 @@ async def chat(request:ChatRequest):
         status_message=decision["status_message"]
 
         if action=="none":
+            if decision["response_type"]=="answer" and decision["answer"]:
+                yield "data: "+json.dumps({
+                    "type":"answer_start"
+                },ensure_ascii=False)+"\n\n"
+                yield "data: "+json.dumps({
+                    "type":"token",
+                    "text":decision["answer"]
+                },ensure_ascii=False)+"\n\n"
+                yield "data: "+json.dumps({
+                    "type":"answer_end"
+                },ensure_ascii=False)+"\n\n"
+                return
             yield "data: "+json.dumps({
                 "type":"status",
                 "text":status_message
@@ -220,7 +295,9 @@ async def chat(request:ChatRequest):
 
         yield "data: "+json.dumps({
             "type":"completed",
-            "text":"Die Operation wurde erfolgreich ausgeführt. Ich analysiere jetzt die Ergebnisse."
+            "text":"Die Operation wurde erfolgreich ausgeführt. Ich analysiere jetzt die Ergebnisse.",
+            "action":action,
+            "success":not tool_output.startswith("Bei der Operation ist ein Fehler aufgetreten:")
         },ensure_ascii=False)+"\n\n"
         await asyncio.sleep(0.1)
 
