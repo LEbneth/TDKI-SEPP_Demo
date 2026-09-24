@@ -73,37 +73,6 @@ def execute_tool(tool_name):
     except Exception as e:
         return f"Die Operation konnte nicht ausgeführt werden: {e}"
 
-def get_knowledge_answer(user_message):
-    message=user_message.lower()
-    asks_about_weakness=any(
-        phrase in message
-        for phrase in (
-            "schwachstelle",
-            "sicherheitslücke",
-            "warum ist",
-            "warum hat",
-            "wie funktioniert der angriff",
-        )
-    )
-    if not asks_about_weakness:
-        return None
-
-    if "glühbirne" in message or "gluhbirne" in message or "lampe" in message:
-        return (
-            "Die Glühbirne nimmt Steuerbefehle unverschlüsselt und ohne "
-            "Anmeldung über Telnet an. Ein Angreifer kann die Befehle "
-            "dadurch mitlesen und erneut senden."
-        )
-
-    if "schloss" in message or "tür" in message or "tur" in message:
-        return (
-            "Das Türschloss überträgt die benötigten Zugangsdaten "
-            "unverschlüsselt über MQTT. Wer den Netzwerkverkehr mitliest, "
-            "kann die Zugangsdaten verwenden und das Schloss steuern."
-        )
-
-    return None
-
 def select_tool(user_message,scan_completed):
     prompt=load_prompt(
         "1_tool_selection",
@@ -136,28 +105,20 @@ def select_tool(user_message,scan_completed):
         print(content)
         return {
             "action":"none",
-            "response_type":"status",
-            "status_message":"Ich konnte leider nicht bestimmen, wie ich diese Anfrage bearbeiten soll.",
-            "answer":""
+            "answer":"Die Anfrage konnte nicht verarbeitet werden. Bitte formuliere sie anders."
         }
     action=decision.get("action","none")
-    response_type=decision.get("response_type","status")
-    status_message=decision.get("status_message","")
     answer=decision.get("answer","")
     if action not in TOOLS:
         action="none"
     if not scan_completed and action not in ("none","network_scan"):
         action="none"
-        response_type="status"
-        answer=""
-        status_message=(
-            "Zuerst muss eine Reconnaissance des Zielnetzes erfolgen. "
-            "Starte den Netzwerk-Scan, um die verfügbaren Ziele zu erfassen."
+        answer=(
+            "Bevor ein Gerät ausgewählt werden kann, muss zuerst der "
+            "Netzwerk-Scan durchgeführt werden."
         )
     return {
         "action":action,
-        "response_type":response_type,
-        "status_message":status_message,
         "answer":answer
     }
 
@@ -175,77 +136,6 @@ def generate_progress_message(action):
         action,
         "Sicherheitsprüfung läuft: Zielkommunikation wird analysiert."
     )
-
-def build_fast_result_answer(action,tool_output):
-    if any(
-        marker in tool_output.lower()
-        for marker in ("fehler", "error", "failed", "timeout", "konnte nicht")
-    ):
-        return tool_output
-
-    if action=="network_scan":
-        return f"*Netzwerk-Scan abgeschlossen.*\n\n{tool_output}"
-
-    if action=="lightbulb_on":
-        return (
-            "*Glühbirne wurde erfolgreich eingeschaltet.*\n\n"
-            "Einfach erklärt: Die Glühbirne nimmt Steuerbefehle über eine "
-            "ungeschützte Verbindung an. Deshalb kann ein Angreifer den "
-            "Befehl ohne Anmeldung erneut senden."
-        )
-    if action=="lightbulb_off":
-        return (
-            "*Glühbirne wurde erfolgreich ausgeschaltet.*\n\n"
-            "Einfach erklärt: Die Glühbirne nimmt Steuerbefehle über eine "
-            "ungeschützte Verbindung an. Deshalb kann ein Angreifer den "
-            "Befehl ohne Anmeldung erneut senden."
-        )
-    if action=="lock_open":
-        return (
-            "*Türschloss wurde erfolgreich geöffnet.*\n\n"
-            "Einfach erklärt: Die Zugangsdaten des Schlosses werden "
-            "unverschlüsselt übertragen und können mitgelesen werden."
-        )
-    if action=="lock_close":
-        return (
-            "*Türschloss wurde erfolgreich geschlossen.*\n\n"
-            "Einfach erklärt: Die Zugangsdaten des Schlosses werden "
-            "unverschlüsselt übertragen und können mitgelesen werden."
-        )
-    if action=="lock_status":
-        return f"*Schlossstatus abgefragt.*\n\n{tool_output}"
-    return None
-
-def analyze_result_stream(user_message,action,tool_output):
-    prompt=load_prompt("3_analysis",user_message=user_message,action=action,tool_output=tool_output)
-    response=requests.post(
-        OLLAMA_URL,
-        json={
-            "model":MODEL,
-            "messages":[{"role":"system","content":prompt}],
-            "stream":True,
-            "keep_alive":OLLAMA_KEEP_ALIVE,
-            "options":{
-                "num_predict":220,
-                "temperature":0.2
-            }
-        },
-        stream=True,
-        timeout=120
-    )
-    response.raise_for_status()
-    for line in response.iter_lines():
-        if not line:
-            continue
-        try:
-            data=json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if data.get("done"):
-            break
-        token=data.get("message",{}).get("content","")
-        if token:
-            yield token
 
 @app.get("/",response_class=HTMLResponse)
 async def index(request:Request):
@@ -295,32 +185,19 @@ async def chat(request:ChatRequest):
             return
 
         action=decision["action"]
-        status_message=decision["status_message"]
 
         if action=="none":
-            if decision["response_type"]=="answer" and decision["answer"]:
-                yield "data: "+json.dumps({
-                    "type":"answer_start"
-                },ensure_ascii=False)+"\n\n"
-                yield "data: "+json.dumps({
-                    "type":"token",
-                    "text":decision["answer"]
-                },ensure_ascii=False)+"\n\n"
-                yield "data: "+json.dumps({
-                    "type":"answer_end"
-                },ensure_ascii=False)+"\n\n"
-                return
             yield "data: "+json.dumps({
-                "type":"status",
-                "text":status_message
+                "type":"answer_start"
+            },ensure_ascii=False)+"\n\n"
+            yield "data: "+json.dumps({
+                "type":"token",
+                "text":decision["answer"]
+            },ensure_ascii=False)+"\n\n"
+            yield "data: "+json.dumps({
+                "type":"answer_end"
             },ensure_ascii=False)+"\n\n"
             return
-
-        yield "data: "+json.dumps({
-            "type":"status",
-            "text":status_message
-        },ensure_ascii=False)+"\n\n"
-        await asyncio.sleep(0.1)
 
         progress_message=generate_progress_message(action)
 
