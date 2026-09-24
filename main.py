@@ -192,6 +192,9 @@ def build_fast_result_answer(action,tool_output):
     ):
         return tool_output
 
+    if action=="network_scan":
+        return f"*Netzwerk-Scan abgeschlossen.*\n\n{tool_output}"
+
     if action=="lightbulb_on":
         return (
             "*Glühbirne wurde erfolgreich eingeschaltet.*\n\n"
@@ -341,9 +344,14 @@ async def chat(request:ChatRequest):
             action
         )
 
+        completed_text=(
+            "Scan abgeschlossen. Rohdaten werden direkt angezeigt."
+            if action=="network_scan"
+            else "Die Operation wurde erfolgreich ausgeführt. Ergebnisse werden ausgewertet."
+        )
         yield "data: "+json.dumps({
             "type":"completed",
-            "text":"Die Operation wurde erfolgreich ausgeführt. Ich analysiere jetzt die Ergebnisse.",
+            "text":completed_text,
             "action":action,
             "success":not tool_output.startswith("Bei der Operation ist ein Fehler aufgetreten:")
         },ensure_ascii=False)+"\n\n"
