@@ -105,15 +105,6 @@ def get_knowledge_answer(user_message):
     return None
 
 def select_tool(user_message,scan_completed):
-    knowledge_answer=get_knowledge_answer(user_message)
-    if knowledge_answer is not None:
-        return {
-            "action":"none",
-            "response_type":"answer",
-            "status_message":"",
-            "answer":knowledge_answer
-        }
-
     prompt=load_prompt(
         "1_tool_selection",
         scan_completed="ja" if scan_completed else "nein"
@@ -347,7 +338,7 @@ async def chat(request:ChatRequest):
         completed_text=(
             "Scan abgeschlossen. Rohdaten werden direkt angezeigt."
             if action=="network_scan"
-            else "Die Operation wurde erfolgreich ausgeführt. Ergebnisse werden ausgewertet."
+            else "Operation abgeschlossen. Skriptausgabe wird direkt angezeigt."
         )
         yield "data: "+json.dumps({
             "type":"completed",
@@ -357,64 +348,13 @@ async def chat(request:ChatRequest):
         },ensure_ascii=False)+"\n\n"
         await asyncio.sleep(0.1)
 
-        fast_answer=build_fast_result_answer(action,tool_output)
-        if fast_answer is not None:
-            yield "data: "+json.dumps({
-                "type":"answer_start"
-            },ensure_ascii=False)+"\n\n"
-            yield "data: "+json.dumps({
-                "type":"token",
-                "text":fast_answer
-            },ensure_ascii=False)+"\n\n"
-            yield "data: "+json.dumps({
-                "type":"answer_end"
-            },ensure_ascii=False)+"\n\n"
-            return
-
         yield "data: "+json.dumps({
             "type":"answer_start"
         },ensure_ascii=False)+"\n\n"
-
-        queue=asyncio.Queue()
-        loop=asyncio.get_running_loop()
-
-        def stream_worker():
-            try:
-                for token in analyze_result_stream(
-                    user_message,
-                    action,
-                    tool_output
-                ):
-                    asyncio.run_coroutine_threadsafe(
-                        queue.put(token),
-                        loop
-                    )
-            except Exception as e:
-                asyncio.run_coroutine_threadsafe(
-                    queue.put(
-                        f"\n\nBei der Analyse der Ergebnisse ist ein Fehler aufgetreten: {e}"
-                    ),
-                    loop
-                )
-            finally:
-                asyncio.run_coroutine_threadsafe(
-                    queue.put(None),
-                    loop
-                )
-
-        asyncio.create_task(
-            asyncio.to_thread(stream_worker)
-        )
-
-        while True:
-            token=await queue.get()
-            if token is None:
-                break
-            yield "data: "+json.dumps({
-                "type":"token",
-                "text":token
-            },ensure_ascii=False)+"\n\n"
-
+        yield "data: "+json.dumps({
+            "type":"token",
+            "text":tool_output
+        },ensure_ascii=False)+"\n\n"
         yield "data: "+json.dumps({
             "type":"answer_end"
         },ensure_ascii=False)+"\n\n"
