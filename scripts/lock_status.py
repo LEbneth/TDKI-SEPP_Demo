@@ -38,12 +38,12 @@ def on_connect(client, userdata, flags, reason_code, properties):
     global connection_error
 
     if reason_code == 0:
-        print("Connected to MQTT broker.")
+        print("Mit dem MQTT-Broker verbunden.")
         client.subscribe(STATUS_TOPIC)
     else:
         connection_error = reason_code
-        print(f"MQTT connection failed: {reason_code}")
-
+        print(f"MQTT-Verbindung fehlgeschlagen: {reason_code}")
+    
     connected.set()
 
 
@@ -75,7 +75,7 @@ def get_lock_status():
     client.on_message = on_message
 
     try:
-        print(f"Connecting to {BROKER}:{PORT} ...")
+        print(f"Verbindung zu {BROKER}:{PORT} wird hergestellt ...")
 
         client.connect(
             BROKER,
@@ -87,23 +87,23 @@ def get_lock_status():
 
         if not connected.wait(timeout=5):
             raise TimeoutError(
-                "Timeout while connecting to MQTT broker."
+                "Timeout bei der Verbindung mit dem MQTT-Broker."
             )
 
         if connection_error is not None:
             raise RuntimeError(
-                f"MQTT connection failed: {connection_error}"
+                f"MQTT Verbindung fehlgeschlagen: {connection_error}"
             )
 
-        print(f"Requesting lock status:")
+        print(f"Schlossstatus anfordern:")
         print(f"  Topic:   {STATUS_TOPIC}")
 
         if not status_received.wait(timeout=5):
             raise TimeoutError(
-                "Timeout while waiting for lock status."
+                "Timeout beim Warten auf die Antwort des Schlosses."
             )
 
-        print("Lock status received:")
+        print("Status des Schlosses erhalten:")
         if isinstance(lock_status, dict):
             state_value = lock_status.get(
                 "state",

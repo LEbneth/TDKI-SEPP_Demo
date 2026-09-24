@@ -60,12 +60,12 @@ def open_lock():
         # Auf erfolgreiche Verbindung warten
         if not connected.wait(timeout=5):
             raise TimeoutError(
-                "Timeout while connecting to MQTT broker."
+                "Timeout bei der Verbindung mit dem MQTT-Broker."
             )
 
         if connection_error is not None:
             raise RuntimeError(
-                f"MQTT connection failed: {connection_error}"
+                f"MQTT Verbindung fehlgeschlagen: {connection_error}"
             )
 
         print("Schließbefehl wird gesendet:")
