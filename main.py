@@ -73,7 +73,46 @@ def execute_tool(tool_name):
     except Exception as e:
         return f"Die Operation konnte nicht ausgeführt werden: {e}"
 
+def detect_direct_tool(user_message):
+    message=" ".join(user_message.lower().split())
+    message=message.replace("ü","u").replace("ä","a").replace("ö","o")
+
+    direct_actions=(
+        (("gluhbirne", "lampe"), ("einschalten", "anschalten", "anmachen"), "lightbulb_on"),
+        (("gluhbirne", "lampe"), ("ausschalten", "abschalten", "ausmachen"), "lightbulb_off"),
+        (("turschloss", "schloss"), ("offnen", "aufmachen", "aufschliessen"), "lock_open"),
+        (("turschloss", "schloss"), ("schliessen", "zumachen", "abschliessen"), "lock_close"),
+        (("turschloss", "schloss"), ("status", "zustand"), "lock_status"),
+    )
+
+    for device_names, action_words, action in direct_actions:
+        if any(name in message for name in device_names):
+            if any(word in message for word in action_words):
+                return action
+
+    if "netzwerk" in message and any(
+        word in message for word in ("scan", "scannen", "durchsuchen")
+    ):
+        return "network_scan"
+
+    return None
+
 def select_tool(user_message,scan_completed):
+    direct_action=detect_direct_tool(user_message)
+    if direct_action is not None:
+        if not scan_completed and direct_action != "network_scan":
+            return {
+                "action":"none",
+                "answer":(
+                    "Bevor ein Gerät ausgewählt werden kann, muss zuerst "
+                    "der Netzwerk-Scan durchgeführt werden."
+                )
+            }
+        return {
+            "action":direct_action,
+            "answer":""
+        }
+
     prompt=load_prompt(
         "1_tool_selection",
         scan_completed="ja" if scan_completed else "nein"
@@ -105,7 +144,10 @@ def select_tool(user_message,scan_completed):
         print(content)
         return {
             "action":"none",
-            "answer":"Die Anfrage konnte nicht verarbeitet werden. Bitte formuliere sie anders."
+            "answer":content or (
+                "Die Anfrage konnte nicht verarbeitet werden. "
+                "Bitte formuliere sie anders."
+            )
         }
     action=decision.get("action","none")
     answer=decision.get("answer","")
