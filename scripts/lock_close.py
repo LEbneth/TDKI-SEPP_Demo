@@ -21,10 +21,10 @@ def on_connect(client, userdata, flags, reason_code, properties):
     global connection_error
 
     if reason_code == 0:
-        print("Connected to MQTT broker.")
+        print("Mit dem MQTT-Broker verbunden.")
     else:
         connection_error = reason_code
-        print(f"MQTT connection failed: {reason_code}")
+        print(f"MQTT-Verbindung fehlgeschlagen: {reason_code}")
 
     connected.set()
 
@@ -46,7 +46,7 @@ def open_lock():
     client.on_connect = on_connect
 
     try:
-        print(f"Connecting to {BROKER}:{PORT} ...")
+        print(f"Verbindung zu {BROKER}:{PORT} wird hergestellt ...")
 
         client.connect(
             BROKER,
@@ -68,9 +68,9 @@ def open_lock():
                 f"MQTT connection failed: {connection_error}"
             )
 
-        print(f"Sending unlock command:")
+        print("Schließbefehl wird gesendet:")
         print(f"  Topic:   {topic}")
-        print(f"  Payload: {payload}")
+        print(f"  Nutzlast: {payload}")
 
         result = client.publish(
             topic=topic,
@@ -84,10 +84,10 @@ def open_lock():
 
         if result.rc != mqtt.MQTT_ERR_SUCCESS:
             raise RuntimeError(
-                f"MQTT publish failed: {result.rc}"
+                f"MQTT-Veröffentlichung fehlgeschlagen: {result.rc}"
             )
 
-        print("Unlock command sent successfully.")
+        print("Schließbefehl erfolgreich gesendet.")
 
     finally:
         client.loop_stop()
